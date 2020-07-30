@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1aadbaf5-c77c-4edc-84be-56d1b051b2fe" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="eca10e41-a896-46d1-8f66-46cd18f2ceb5">
+		<vm:queues >
+			<vm:queue queueName="fizzbuzz" />
+			<vm:queue queueName="final" />
+		</vm:queues>
+	</vm:config>
+	<flow name="fizzbuzz-v2Flow" doc:id="7d8517e0-d50f-46a8-bbc7-99c04132d277" >
+		<http:listener doc:name="Listener" doc:id="2ff9a2ad-7562-4688-914a-659aacc4071a" config-ref="HTTP_Listener_config" path="/fizzbuzz/{count}"/>
+		<ee:transform doc:name="Init fizzbuzz payload" doc:id="d4f53531-ac44-42de-bdbe-76a573909ef2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	index: 1,
+	count: attributes.uriParams["count"],
+	message: ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<vm:publish queueName="fizzbuzz" doc:name="Publish Payload to FizzBuzz Flow" doc:id="2f21c5df-4d03-4487-8735-a8eb7f157817" config-ref="VM_Config" sendCorrelationId="NEVER"/>
+		<vm:consume queueName="final" doc:name="Consume final message" doc:id="c31eb22f-0ba1-4386-a8ea-bb31d4d6eff9" config-ref="VM_Config"/>
+	</flow>
+	<flow name="fizzbuzz-v2Flow1" doc:id="937359ac-2056-459a-b5d8-56cee3fabc32" >
+		<vm:listener queueName="fizzbuzz" doc:name="Listener" doc:id="719be233-f7b2-498a-a2d5-e106215f39cc" config-ref="VM_Config" numberOfConsumers="1"/>
+		<choice doc:name="Choice" doc:id="df2c2130-bc35-43fa-a611-aa86eccbbad8" >
+			<when expression="#[((payload.index mod 3) == 0) and ((payload.index mod 5) == 0)]">
+				<ee:transform doc:name="Append message with fizzbuzz" doc:id="5651e1a5-70d3-4d41-b5b1-7b420ffe1797" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	index: payload.index + 1,
+	count: payload.count,
+	message: payload.message ++ "|fizzbuzz"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<choice doc:name="Choice" doc:id="96a80385-e5fa-42e0-b09f-dbcac5057943" >
+					<when expression="#[(payload.index mod 3) == 0]" >
+						<ee:transform doc:name="Append message with fizz" doc:id="ff72815d-163f-4a8d-a489-a52d650a9757" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	index: payload.index + 1,
+	count: payload.count,
+	message: payload.message ++ "|fizz"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<when expression="#[(payload.index mod 5) == 0]">
+						<ee:transform doc:name="Append message with fizz" doc:id="3c698201-8c69-4dd2-a6b6-1816f506acae" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	index: payload.index + 1,
+	count: payload.count,
+	message: payload.message ++ "|buzz"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Append message with fizz" doc:id="c203a910-7deb-418a-8091-dd104b39df22" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	index: payload.index + 1,
+	count: payload.count,
+	message: payload.message ++ "|" ++ payload.index
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<choice doc:name="Choice" doc:id="733ae25e-8cf1-4f13-a26f-f08fec76ba72">
+			<when expression="#[payload.index &lt;= payload.count]">
+				<vm:publish queueName="fizzbuzz" doc:name="Recursive Publish to FizzBuzz flow" doc:id="ed90e3b3-7970-475f-9bb2-6b51fd3fae06" config-ref="VM_Config" sendCorrelationId="NEVER"/>	
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Remove index from payload and convert to json" doc:id="f7563262-1ddc-4e17-b6ba-9d0fb97600ef" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	count: payload.count,
+	message: payload.message ++ "|"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<vm:publish doc:name="Publish json message to final queue" doc:id="15494a83-2ba8-4acf-83c3-5a386ca9aaa6" config-ref="VM_Config" queueName="final"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
