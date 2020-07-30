@@ -16,11 +16,6 @@ properties:
   </types:catalog>
   <types:enrichment select="#d4f53531-ac44-42de-bdbe-76a573909ef2">
     <types:processor-declaration>
-      <types:input-event>
-        <types:message>
-          <types:payload type="jsonFizzBuzz"/>
-        </types:message>
-      </types:input-event>
       <types:output-event>
         <types:message>
           <types:payload type="jsonFizzBuzz"/>
