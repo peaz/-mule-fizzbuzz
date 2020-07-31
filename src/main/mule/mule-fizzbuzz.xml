@@ -36,7 +36,7 @@ output application/java
 		<vm:listener queueName="fizzbuzz" doc:name="Listener" doc:id="719be233-f7b2-498a-a2d5-e106215f39cc" config-ref="VM_Config" numberOfConsumers="1"/>
 		<choice doc:name="Choice" doc:id="df2c2130-bc35-43fa-a611-aa86eccbbad8" >
 			<when expression="#[((payload.index mod 3) == 0) and ((payload.index mod 5) == 0)]">
-				<ee:transform doc:name="Append message with fizzbuzz" doc:id="5651e1a5-70d3-4d41-b5b1-7b420ffe1797" >
+				<ee:transform doc:name="Append message with FizzBuzz" doc:id="5651e1a5-70d3-4d41-b5b1-7b420ffe1797" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
@@ -44,7 +44,7 @@ output application/java
 {
 	index: payload.index + 1,
 	count: payload.count,
-	message: payload.message ++ "|fizzbuzz"
+	message: payload.message ++ "|FizzBuzz"
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
@@ -52,7 +52,7 @@ output application/java
 			<otherwise>
 				<choice doc:name="Choice" doc:id="96a80385-e5fa-42e0-b09f-dbcac5057943" >
 					<when expression="#[(payload.index mod 3) == 0]" >
-						<ee:transform doc:name="Append message with fizz" doc:id="ff72815d-163f-4a8d-a489-a52d650a9757" >
+						<ee:transform doc:name="Append message with Fizz" doc:id="ff72815d-163f-4a8d-a489-a52d650a9757" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
@@ -60,13 +60,13 @@ output application/java
 {
 	index: payload.index + 1,
 	count: payload.count,
-	message: payload.message ++ "|fizz"
+	message: payload.message ++ "|Fizz"
 }]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 					</when>
 					<when expression="#[(payload.index mod 5) == 0]">
-						<ee:transform doc:name="Append message with fizz" doc:id="3c698201-8c69-4dd2-a6b6-1816f506acae" >
+						<ee:transform doc:name="Append message with Buzz" doc:id="3c698201-8c69-4dd2-a6b6-1816f506acae" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
@@ -74,13 +74,13 @@ output application/java
 {
 	index: payload.index + 1,
 	count: payload.count,
-	message: payload.message ++ "|buzz"
+	message: payload.message ++ "|Buzz"
 }]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
 					</when>
 					<otherwise >
-						<ee:transform doc:name="Append message with fizz" doc:id="c203a910-7deb-418a-8091-dd104b39df22" >
+						<ee:transform doc:name="Append message with the index number" doc:id="c203a910-7deb-418a-8091-dd104b39df22" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
